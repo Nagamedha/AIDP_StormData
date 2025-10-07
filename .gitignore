@@ -1,0 +1,27 @@
+# --- Virtual Environment ---
+venv/
+
+# --- Python cache and compiled files ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pytest_cache/
+
+# --- VS Code settings ---
+.vscode/
+
+# --- Logs & temp data ---
+logs/
+*.log
+data/
+*.csv
+*.xlsx
+*.json
+
+# --- OS junk ---
+.DS_Store
+Thumbs.db
+
+# --- Environment variables ---
+.env
