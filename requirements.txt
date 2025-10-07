@@ -1,0 +1,10 @@
+boto3
+pytesseract
+pdf2image
+pillow
+pandas
+numpy
+spacy
+opencv-python
+PyPDF2
+pytest
