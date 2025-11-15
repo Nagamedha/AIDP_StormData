@@ -38,3 +38,8 @@ Thumbs.db
 # --- Environment variables & credentials ---
 .env
 credentials/
+
+
+logs/ocr_text/*.txt
+
+
