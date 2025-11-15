@@ -11,17 +11,30 @@ __pycache__/
 # --- VS Code settings ---
 .vscode/
 
-# --- Logs & temp data ---
-logs/
-*.log
-data/
-*.csv
-*.xlsx
-*.json
+# --- Data folders (ignore contents but keep folders) ---
+data/input/*
+data/raw/*
+data/error/*
+data/processed/*
+data/archived_input/*
+data/archived_raw/*
+data/archived_processed/*
+data/logs/*
+
+# Keep folder structure
+!data/input/.gitkeep
+!data/raw/.gitkeep
+!data/error/.gitkeep
+!data/processed/.gitkeep
+!data/archived_input/.gitkeep
+!data/archived_raw/.gitkeep
+!data/archived_processed/.gitkeep
+!data/logs/.gitkeep
 
 # --- OS junk ---
 .DS_Store
 Thumbs.db
 
-# --- Environment variables ---
+# --- Environment variables & credentials ---
 .env
+credentials/

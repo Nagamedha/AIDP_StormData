@@ -4,7 +4,7 @@ packages = [
     "boto3",
     "pytesseract",
     "pdf2image",
-    "pillow",
+    "PIL",
     "pandas",
     "numpy",
     "spacy",

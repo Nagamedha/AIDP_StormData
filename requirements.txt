@@ -1,10 +1,11 @@
-boto3
+#boto3
 pytesseract
 pdf2image
-pillow
+PIL
 pandas
 numpy
 spacy
 opencv-python
 PyPDF2
 pytest
+gspread
