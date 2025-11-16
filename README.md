@@ -1,329 +1,310 @@
 # **AI-Powered Intelligent Document Processing Pipeline for Historical NOAA Storm Data**
 
+### 1. Overview
 
-## **1. Overview**
+Across the United States, the National Oceanic and Atmospheric Administration (NOAA) has published monthly *Storm Data* records for decades. While recent datasets are digital and structured, **millions of older reports exist only as handwritten, scanned, or low-quality PDF documents**, many dating back to the 1950s.
 
-Across the United States, the National Oceanic and Atmospheric Administration (NOAA) has published monthly *Storm Data* records for decades.
-While recent datasets are digital and structured, **millions of older reports exist only as handwritten, scanned, or low-resolution PDF documents** (some dating back to the 1950s).
-
-These documents contain valuable information:
+These documents contain critical information such as:
 
 * Storm location
 * Date & time
 * Path length & width
 * Fatalities & injuries
-* Property and crop damage
-* storm descriptions
+* Property & crop damage
+* Character of storm
 
-However, the **handwritten tables, faded ink, and inconsistent formatting** make them extremely difficult to retrieve manually — and almost impossible to use for large-scale research or analysis.
+However, the **inconsistent formatting, handwritten tables, faded ink, and scanning artifacts** make them extremely difficult to extract manually — and nearly impossible to use at scale.
 
-### **This project solves that problem.**
+#### **This project solves that problem.**
 
 This repository implements a **fully automated, AI-powered document processing pipeline** that:
 
-1. **Ingests raw historical NOAA PDFs**
-2. **Automatically splits multi-page files**
-3. **Uses OCR to detect which pages actually contain storm tables**
-4. **Extracts structured data using Gemini (LLM-based extraction)**
-5. **Cleans & normalizes results**
-6. **Exports final structured data to Google Sheets for analysis/visualization**
+1. Ingests raw historical NOAA PDFs
+2. Splits multi-page documents
+3. Performs OCR and detects pages with storm tables
+4. Uses Google Gemini to extract structured JSON
+5. Cleans, formats, and validates all fields
+6. Exports the final dataset to Google Sheets for analysis
 
-This transforms inaccessible historical storm records into **clean, queryable, machine-readable datasets** — ready for climate research, vulnerability analysis, emergency management, insurance modeling, and academic study.
+This transforms inaccessible historical storm records into **clean, machine-readable datasets** suitable for:
 
-**This pipeline uses REAL NOAA documents,**
-It demonstrates the ability to handle **real-world noise**, handwriting, scanned text, and degraded PDFs.
+* Climate and meteorology research
+* Vulnerability & risk assessments
+* Insurance and actuarial modeling
+* Emergency management
+* Academic projects & historical analyses
 
+The pipeline operates on **real NOAA storm documents**, not synthetic datasets—demonstrating robust handling of messy, inconsistent, real-world data.
 
-## **2. Key Features**
+---
+
+### 2. Key Features
 
 * **Automated PDF ingestion**
-  Place any number of NOAA PDF reports in `data/input/` and run the pipeline.
+  Drop any NOAA PDF into `data/input/`.
 
 * **Automatic page splitting**
-  Each PDF is converted into individual page-level PDFs.
+  Ensures clean page-level processing.
 
-* **Intelligent page scoring**
-  OCR determines whether a page contains meaningful storm table content.
+* **Keyword-based intelligent page scoring**
+  Keeps only pages containing storm tables.
 
-* **High-accuracy OCR (printed + handwritten)**
-  Custom preprocessing improves the recognition of old scanned handwriting.
+* **Enhanced OCR preprocessing**
+  Sharpens old handwriting and faint printed text.
 
-* **LLM-based structured extraction**
-  Using **Gemini** (Flash / Flash-Lite) to extract fields into consistent JSON.
+* **LLM-based structured extraction (Gemini)**
+  Interprets handwritten tables and produces normalized JSON.
 
-* **Continuation handling**
-  Pages for the same month are combined in order into a single JSON.
+* **Continuation-page handling**
+  Pages are merged in correct order before extraction.
 
 * **Google Sheets export**
-  Final cleaned rows are appended to a central live Sheet for visualization.
+  Data becomes instantly available for dashboards.
 
-* **Modular & configurable**
-  Each stage can be enabled/disabled via `.env` flags.
+* **Flag-based modular execution**
+  Enable/disable OCR debug, Gemini, Sheets export, etc.
 
-* **Extensible for future work**
-  Architecture supports adding a queryable database or dashboards.
-  Automating the process of getting the PDF to feed as input.
-  Enhancing the pipeline using better models and cleaning the data more accurately
+* **Extensible design**
+  Easy to integrate with BigQuery, DynamoDB, or any OCR/LLM engine.
 
+---
 
-## **3. System Architecture**
+### 3. System Architecture
 
 ```
-/data/input
-    ↓ PDF ingestion
-PDF Splitter
-    ↓ Single-page PDFs
-Page OCR + Scoring
-    ↓ Keep or discard
-/data/raw/<month_year>/
-    ↓ OCR preprocessing
-Gemini LLM Extraction
-    ↓ JSON output
-/data/processed/<month_year>.json
-    ↓ Cleaning + normalization
-Google Sheets Exporter
-    ↓ Live analytics-ready sheet
+PHASE 1 — INPUT
+[ Raw NOAA PDFs ] → [ PDF Splitter ] → [ Single-Page PDFs ]
+
+PHASE 2 — PAGE FILTERING
+[ OCR + Keyword Scoring ] → Keep → data/raw/<mm_yyyy>/
+                           → Discard → data/error/<mm_yyyy>/
+
+PHASE 3 — EXTRACTION
+data/raw/<mm_yyyy>/ → [ OCR Preprocessing ] → [ Gemini LLM Extraction ]
+                    → [ Structured JSON ] → data/processed/<mm_yyyy>.json
+
+PHASE 4 — CLEANING
+[ Field Cleaning ] → [ Numeric / Date Normalization ] → [ Final JSON ]
+
+PHASE 5 — EXPORT & ANALYTICS
+[ Google Sheets Exporter ] → [ Live Analytics Sheet ]                         
 ```
 
+---
 
-## **4. Repository Structure**
+### 4. Repository Structure
 
 ```
 AIDP_StormData/
 │
 ├── data/
-│   ├── input/                # Drop raw NOAA PDFs here
+│   ├── input/                # Raw NOAA PDFs
 │   ├── raw/                  # Kept pages after OCR scoring
-│   ├── error/                # Discarded noisy pages
-│   ├── processed/            # JSON extracted via Gemini
-│   ├── archived_input/       # Original PDFs after processing
-│   ├── archived_raw/         # Raw page folders after extraction
-│   └── archived_processed/   # JSON files after Google Sheets export
+│   ├── error/                # Discarded pages
+│   ├── processed/            # Gemini-extracted JSON
+│   ├── archived_input/       # Original PDFs after ingest
+│   ├── archived_raw/         # Raw folders after extraction
+│   ├── archived_processed/   # JSON after Sheets export
+│   ├── logs/                 # log for tracking workflow
 │
 ├── logs/
-│   └── ocr_text/             # Optional OCR debug text (controlled by flag)
+│   └── ocr_text/             # OCR debug text (optional)
 │
 ├── src/
-│   ├── ingestion/            # PDF splitter
-│   ├── pipeline/             # Main pipeline runner
-│   ├── extraction/           # Gemini extractor
-│   ├── export/               # Google Sheets exporter
-│   └── utils/                # Logger + configuration
+│   ├── ingestion/            # page_splitter.py
+│   ├── pipeline/             # pipeline_runner.py
+│   ├── extraction/           # gemini_extractor.py
+│   ├── export/               # google_sheets_exporter.py
+│   └── utils/                # config, handlers, logger
 │
-├── credentials/              # Google service account JSON (gitignored)
-├── .env                      # Environment configuration (gitignored)
+├── credentials/              # Google service account (ignored)
+├── .env                      # Environment variables (ignored)
+├── check_deps.py             # Dependency checker
+├── main.py                   # Main pipeline entry
 └── requirements.txt
-└── main.py                   # Single entrypoint for full pipeline
 ```
 
+---
 
-## **5. Prerequisites**
+### 5. Prerequisites
 
 ### **Python Version**
 
-`Python 3.10+`
+```
+Python 3.10+
+```
 
-### **Python Libraries**
+### **Install dependencies**
 
-Install via:
-
-```bash
+```
 pip install -r requirements.txt
 ```
 
-### **You must create a `.env` file**
+### **Create a `.env` file**
 
-(Already ignored by git.)
-
-Example:
+*(Must NOT be committed to GitHub)*
 
 ```env
 # Gemini
-GEMINI_API_KEY=your_api_key_here
-ENABLE_GEMINI=true #set to false skip gemini extractor run
+GEMINI_API_KEY=your_key_here
+ENABLE_GEMINI=true #set to false to skip Gemini extractor run
 
-# Google Sheets
-ENABLE_SHEETS_EXPORT=true # set to false to skip exporting
-GOOGLE_SHEET_ID=your_sheet_id_here 
+# Google Sheets Export
+ENABLE_SHEETS_EXPORT=true #set to false to skip exporting to Google Sheet
 GOOGLE_SHEETS_ENABLED=true
-SERVICE_ACCOUNT_FILE=credentials/service_account.json
+GOOGLE_SHEET_ID=your_sheet_id_here
+SERVICE_ACCOUNT_FILE=credentials/service_account.json # This service account should have edit access to the Google Sheet
 
 # OCR Debug
 SAVE_OCR_DEBUG_TEXT=true #set to false to skip saving ocr.txt files
 
-# Local paths (optional)
+# Paths
 LOCAL_INPUT_PATH=data/input
 LOCAL_RAW_PATH=data/raw
 LOCAL_PROCESSED_PATH=data/processed
 LOCAL_ERROR_PATH=data/error
 LOG_PATH=logs
-
 ```
 
+---
 
-## **6. Environment Flags — How the Pipeline Controls Work**
+### 6. How to Fork & Run Locally
 
-You can **run the entire end-to-end pipeline** or **skip any section** simply by toggling flags.
+### **Step 1 — Fork**
 
-### **Enable/Disable Gemini Extraction**
+On GitHub → **Fork → Create Fork**
 
-```env
-ENABLE_GEMINI=true   # run extraction
-ENABLE_GEMINI=false  # skip LLM extraction
+### **Step 2 — Clone**
+
+```
+git clone https://github.com/<your-username>/AIDP_StormData.git
+cd AIDP_StormData
 ```
 
-### **Enable/Disable Google Sheets Export**
+### **Step 3 — Create & Activate Virtual Environment**
 
-```env
-ENABLE_SHEETS_EXPORT=true
-ENABLE_SHEETS_EXPORT=false
+```
+python3 -m venv venv
+source venv/bin/activate
 ```
 
-### **Enable/Disable OCR Debug Text Saving**
+### **Step 4 — Install Requirements**
 
-OCR text files fill up space — keep them only when debugging.
-
-```env
-SAVE_OCR_DEBUG_TEXT=true
-SAVE_OCR_DEBUG_TEXT=false
+```
+pip install -r requirements.txt
 ```
 
-These flags allow:
+### **Step 5 — Add .env**
 
-* Faster debugging
-* Running individual stages
-* Saving API quota
-* Reprocessing only parts you need
+Copy the template above.
 
+### **Step 6 — Add Google Credentials**
 
-## **7. How to Run the Pipeline**
+```
+credentials/service_account.json
+```
 
-### **Option 1 — Full End-to-End Pipeline**
+### **Step 7 — Add NOAA PDFs**
 
-```bash
+```
+data/input/Jan_1993.pdf
+data/input/Oct_1970.pdf
+```
+
+### **Step 8 — Run**
+
+**Full Pipeline:**
+```
 python main.py
 ```
 
-### **Option 2 — OCR Only**
-
-```bash
+**OCR Only:**
+```
 ENABLE_GEMINI=false ENABLE_SHEETS_EXPORT=false python main.py
 ```
 
-### **Option 3 — Only Gemini Extraction**
-
-```bash
+**Gemini Extraction Only:**
+```
 python -m src.extraction.gemini_extractor
 ```
 
-### **Option 4 — Only Google Sheets Export**
-
-```bash
+**Google Sheets Export Only:**
+```
 python -m src.export.google_sheets_exporter
 ```
 
+---
 
-## **8. What Happens at Each Stage**
+### 7. What Happens at Each Stage
 
-### **1. PDF Ingestion**
+1. **PDF Ingestion** → Move raw NOAA PDFs into `data/input/`
+2. **Splitting** → Each PDF becomes page-level PDFs
+3. **OCR + Scoring** → Pages with storm tables are detected
+4. **Gemini Extraction** → Ordered pages → combined → JSON
+5. **Google Sheets Export** → Data appended for visualization
 
-Put your raw NOAA PDFs into: Format <mon_yyyy.pdf> ex: Jan_1993.pdf
+---
 
-```
-data/input/
-```
+### 8. Real-World Challenges & How We Solved Them
 
-### **2. PDF Splitting**
+### **Challenges Table**
 
-Each multi-page PDF becomes individual page files, that way it is easy to feed to the LLM in the next steps.
+| Challenge                              | Description                                           | Solution                                                        |
+| -------------------------------------- | ----------------------------------------------------- | --------------------------------------------------------------- |
+| **Handwritten & degraded text**        | Pages from 1950–1970 were faint, skewed, or scribbled | Added grayscale → sharpening → threshold OCR preprocessing      |
+| **Noise, smudges, footers, artifacts** | OCR picked up page numbers, smears, ink blotches      | Implemented keyword scoring (THRESHOLD=6) to filter bad pages   |
+| **Continuation across pages**          | Gemini sometimes treated page 2 as a new event table  | Combined pages *in order* into a single extraction prompt       |
+| **OCR structural inconsistency**       | Column boundaries differed widely across decades      | Used LLM-based flexible interpretation instead of rigid parsing |
+| **Gemini API rate limits**             | Experienced 503 errors & daily quota issues           | Added backoff, retry logic, selectable Flash/Flash-Lite models  |
+| **Google Sheets numeric formatting**   | Numbers appeared with `'` prefix (treated as strings) | Cleaned & normalized all numeric fields before export           |
 
-### **3. OCR + Page Scoring**
+---
 
-Each page is scanned for NOAA header keywords:
+### 9. Extending or Reusing This Pipeline
 
-* location
-* date
-* path
-* injured
-* damage
-* character of storm
-* …etc
+This system can be adapted for:
 
-Only pages with real storm tables are kept.
+* Government or archival digitization projects
+* Insurance claims digitization
+* Extracting historical newspapers/weather bulletins
+* Geological or hydrology reports
+* Enterprise OCR + LLM ETL workflows
+* Automated data extraction for research datasets
 
-### **4. Gemini Extraction**
+Modular components allow swapping:
 
-All pages for a month (e.g., `jan_1993`) are:
+* **Gemini → OpenAI / Claude / Local LLMs**
+* **Google Sheets → BigQuery / DynamoDB / PostgreSQL**
+* **Tesseract → PaddleOCR / AWS Textract / Azure OCR**
 
-* Sorted in correct order for page continuation
-* Sent to Gemini for structured JSON extraction
-* Combined into one JSON file for one input PDF
+---
 
-### **5. Google Sheets Export**
+### 10. Future Enhancements
 
-Final cleaned rows are appended to a sheet with all years combined:
-
-```
-month | year | state | location | date | path_length | ... | description
-```
-
-
-## **9. Real-World Challenges & Solutions**
-
-| Challenge                       | Solution                                      |
-| ------------------------------- | --------------------------------------------- |
-| Handwritten and degraded text   | Custom grayscale + sharpening preprocessing   |
-| Noisy scanned pages             | Keyword-based page scoring (THRESHOLD=6)      |
-| Inconsistent table structure    | LLM-driven extraction + normalization         |
-| Continuation pages              | Folder-level merging with page order tracking |
-| API quota limits                | Rate-limiting & retry logic                   |
-| Mixed formatting across decades | Standardized JSON schema                      |
-
-This demonstrates your ability to solve real data engineering + AI problems — not synthetic Kaggle tasks.
-
-
-## **10. Extending or Reusing This Pipeline**
-
-Any developer or researcher can adapt this pipeline for:
-
-* Processing other government archives
-* Insurance claim digitization
-* Old newspaper or weather bulletin extraction
-* Geological or hydrology historical reports
-* Large-scale document OCR + LLM extraction workflows
-* General ETL pipelines that combine OCR + LLM
-
-The pipeline is **completely modular**, so you can replace:
-
-* Gemini → OpenAI / Claude / Local LLM
-* Google Sheets → BigQuery / DynamoDB / Postgres
-* OCR engine → Tesseract + PaddleOCR / AWS Textract
-
-
-## **11. Future Enhancements**
-
-* Direct export to Google BigQuery or any other DB for querying
+* Integrate with a proper analytical database
 * Interactive dashboard
-* Automated scheduling via Airflow
-* Automated extraction of PDF files to the input folder
-* Multi-disaster support (floods, wildfires, earthquakes)
-* Fine-tuned OCR models for historical handwriting
-* Enhancing data cleaning and using better models for data extraction
+* Automated monthly NOAA ingestion
+* Fine-tuned OCR models for handwriting
+* Add multi-disaster support (floods, wildfires, earthquakes)
+* Improve numeric value normalization
+* Build historical trend-detection tools
 
+---
 
-## **12. Author & Academic Credit**
+### 11. Author & Academic Credit
 
-**Developed by:**
-**Nagamedha Sakhamuri**
-Graduate Student – Georgia State University
+**Developed By:** <br>
+ &nbsp;&nbsp;&nbsp;&nbsp; **Nagamedha Sakhamuri** <br>
+ &nbsp;&nbsp;&nbsp;&nbsp; Graduate Student <br>
+ &nbsp;&nbsp;&nbsp;&nbsp; Georgia State University
 
-**Capstone Project Advisor:**
-**Dr. Chetan Tiwari**
-Department of Geosciences & Computer Science
-Georgia State University
+**Capstone Advisor:** <br>
+ &nbsp;&nbsp;&nbsp;&nbsp; **Dr. Chetan Tiwari** <br>
+ &nbsp;&nbsp;&nbsp;&nbsp; Department of Geosciences & Computer Science <br>
+ &nbsp;&nbsp;&nbsp;&nbsp; Georgia State University
 
+---
 
-## **13. License**
+### 12. License
 
-@GSU 
-
+© Georgia State University
