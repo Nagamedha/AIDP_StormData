@@ -40,6 +40,7 @@ Thumbs.db
 credentials/
 
 
-logs/ocr_text/*.txt
+logs/ocr_text/*
+!logs/ocr_text/.gitkeep
 
 
