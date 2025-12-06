@@ -2,7 +2,6 @@
 """
 Pipeline Runner for AIDP_StormData
 
-Current Stage (No Gemini yet):
 --------------------------------
 1. Read PDFs from data/input/
 2. Split multi-page PDF → single pages under data/raw/<doc_name>/

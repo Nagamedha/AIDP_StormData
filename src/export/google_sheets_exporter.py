@@ -10,7 +10,7 @@ Appends rows into a Google Sheet
 Moves processed JSON files → data/archived_processed/
 
 Run standalone:
-    python -m src.export.google_sheets_exporter
+    python -m snrc.export.google_sheets_exporter
 """
 
 import os
