@@ -305,6 +305,12 @@ Modular components allow swapping:
 
 ---
 
-### 12. License
+### 12. Demo Link
+
+Watch Live Demo Here for a quick overview - https://www.loom.com/share/ee85deb134e346f18a6db328c0c70c9a
+
+---
+
+### 13. License
 
 © Georgia State University
